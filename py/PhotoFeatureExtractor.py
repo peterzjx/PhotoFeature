@@ -1,5 +1,5 @@
 import os
-import sys
+import csv
 import PIL.ImageStat
 import PIL.Image as Image
 import math
@@ -44,15 +44,15 @@ def brightness5(im_file):
 def showResult(files, attributes_list):
     n = len(files)
     fig = plt.figure()
-    max = 5
+    max = 3
     for i in xrange(n):
         file = files[i]
         image = skimage.data.imread(file)
         ax = fig.add_subplot(n / max, max, i + 1)
         ax.imshow(image)
-        text = ""
+        text = os.path.basename(file)
         for attribute, value in attributes_list[i].iteritems():
-            text = text + "\r\n" + attribute + ":" + str(value)
+            text = text + "\n" + attribute + ":" + str(value)
         ax.text(0, 0, text)
         ax.axis('off')
     plt.show()
@@ -65,6 +65,8 @@ def getBrightness(im):
 
 
 def getColorfulness(im):
+    if len(im.split()) == 1:  # black and white photo
+        return 0
     rg = list(((r - g) for r, g, b in im.getdata()))
     yb = list(((0.5 * (r + g) - b) for r, g, b in im.getdata()))
     sigma = math.sqrt(numpy.std(rg) ** 2 + numpy.std(yb) ** 2)
@@ -81,10 +83,14 @@ def getContrast(im):
 
 
 def getSaturation(im):
+    if len(im.split()) == 1:  # black and white photo
+        return 0
     return numpy.average(list(max(r, g, b) - min(r, g, b) for r, g, b in im.getdata()))
 
 
 def getSaturationStd(im):
+    if len(im.split()) == 1:  # black and white photo
+        return 0
     return numpy.std(list(max(r, g, b) - min(r, g, b) for r, g, b in im.getdata()))
 
 # code is from https://gist.github.com/shahriman/3289170
@@ -172,18 +178,30 @@ def getBlur(im):
     Measures for blur
 '''
 
-
-def blur(im_file):
-    pass
+def saveResult(files, dir, attributes_list):
+    n = len(files)
+    writer = csv.writer(open(dir+"features.csv", 'w'))
+    for i in xrange(n):
+        file = files[i]
+        name = os.path.basename(file)
+        row = []
+        row.append(name)
+        for attribute, value in attributes_list[i].iteritems():
+            row.append(value)
+        writer.writerow(row)
+    print "result saved"
+    for attribute, value in attributes_list[0].iteritems():
+        print attribute,
 
 
 def main():
     attributes_list = []
     files = []
-    dir = "house/"
+    dir = "/home/peter/dev/PhotoFeature/data/pro/"
     for file in os.listdir(dir):
         if not file.endswith(".jpg"):
             continue
+        print file
         attributes = {}
         im = Image.open(dir + file)
         files.append(dir + file)
@@ -194,7 +212,6 @@ def main():
         attributes["saturation_std"] = getSaturationStd(im)
         attributes["blur"]=getBlur(im)
         attributes_list.append(attributes)
-    showResult(files, attributes_list)
-
-
+    # showResult(files, attributes_list)
+    saveResult(files, dir, attributes_list)
 main()
