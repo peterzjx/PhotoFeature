@@ -245,7 +245,7 @@ def saveResult(files, dir, attributes_list):
 def main():
     attributes_list = []
     files = []
-    dir = "/home/peter/dev/PhotoFeature/data/pro2/"
+    dir = "/home/peter/dev/PhotoFeature/data/all/"
     lst = os.listdir(dir)
     lst.sort()
     for file in lst:
@@ -294,11 +294,9 @@ def test():
     dir = "/home/peter/dev/PhotoFeature/py/"
     file = "8.jpg"
     im = Image.open(dir + file)
-    print getContrast(autoContrast(im)) - getContrast(im)
-    print getBrightness_tuple(autoContrast(im))[0] - getBrightness_tuple(im)[0]
-    im = autoContrast(im)
+    im = convert_edge(im)
     im = im.convert('RGB')
     im.save("edge.jpg")
 
-main()
-# test()
+# main()
+test()
